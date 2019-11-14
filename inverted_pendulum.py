@@ -1,5 +1,6 @@
 import numpy as np
 import gym
+
 from pilco.models import PILCO
 from pilco.controllers import RbfController, LinearController
 from pilco.rewards import ExponentialReward
@@ -10,7 +11,7 @@ np.random.seed(0)
 from utils import rollout, policy
 
 with tf.Session(graph=tf.Graph()) as sess:
-    env = gym.make('InvertedPendulum-v2')
+    env = gym.make('Pendulum-v0')
     # Initial random rollouts to generate a dataset
     X,Y = rollout(env=env, pilco=None, random=True, timesteps=40)
     for i in range(1,3):
@@ -33,12 +34,15 @@ with tf.Session(graph=tf.Graph()) as sess:
     #pilco.controller.b = np.array([[0.0]])
     #pilco.controller.b.trainable = False
 
-    for rollouts in range(3):
+    for rollouts in range(10):
+        
         pilco.optimize_models()
         pilco.optimize_policy()
-        import pdb; pdb.set_trace()
-        X_new, Y_new = rollout(env=env, pilco=pilco, timesteps=100)
+        # import pdb; pdb.set_trace()
+        X_new, Y_new = rollout(env=env, pilco=pilco, timesteps=100, render=True)
         print("No of ops:", len(tf.get_default_graph().get_operations()))
         # Update dataset
         X = np.vstack((X, X_new)); Y = np.vstack((Y, Y_new))
         pilco.mgpr.set_XY(X, Y)
+    print("stop")
+    rollout(env=env, pilco=pilco, timesteps=100, render=True)
